@@ -1,0 +1,149 @@
+import 'dart:io';
+import 'dart:collection';
+
+class Kamar {
+  int id;
+  String tipe;
+  double harga;
+
+  Kamar(this.id, this.tipe, this.harga);
+
+  void tampilkanInfo() {
+    print("ID: $id, Tipe: $tipe, Harga: Rp$harga");
+  }
+}
+
+class KamarSingle extends Kamar {
+  KamarSingle(int id) : super(id, "Single", 500000);
+}
+
+class KamarDouble extends Kamar {
+  KamarDouble(int id) : super(id, "Double", 1000000);
+}
+
+class Reservasi {
+  List<Kamar> daftarKamar = []; 
+  Queue<Map<String, dynamic>> antrianReservasi = Queue<Map<String, dynamic>>();
+  Map<int, Kamar> dataKamar = {};
+  Map<String, Kamar> dataReservasi = {};
+  void tambahKamar(Kamar kamar) {
+    daftarKamar.add(kamar);
+    dataKamar[kamar.id] = kamar;
+  }
+
+  void tampilkanKamar() {
+    print("\nDaftar Kamar:");
+    for (var kamar in daftarKamar) {
+      kamar.tampilkanInfo();
+    }
+  }
+
+  void pesanKamar() {
+    stdout.write("Masukkan nama anda: ");
+    String nama = stdin.readLineSync()?.trim() ?? "";
+    if (nama.isEmpty) {
+      print("Nama tidak boleh kosong.");
+      return;
+    }
+
+    stdout.write("Masukkan ID kamar yang ingin dipesan: ");
+    int? idKamar = int.tryParse(stdin.readLineSync() ?? "");
+
+    if (idKamar == null || !dataKamar.containsKey(idKamar)) {
+      print("Kamar dengan ID $idKamar tidak tersedia.");
+      return;
+    }
+
+    antrianReservasi.addLast({"nama": nama, "idKamar": idKamar});
+    print("$nama telah masuk dalam daftar reservasi untuk kamar ID $idKamar.");
+  }
+
+  void prosesReservasi() {
+    if (antrianReservasi.isNotEmpty) {
+      var reservasi = antrianReservasi.removeFirst();
+      String nama = reservasi["nama"];
+      int idKamar = reservasi["idKamar"];
+      dataReservasi[nama] = dataKamar[idKamar]!;
+
+      print("$nama telah berhasil mendapatkan kamar:");
+      dataReservasi[nama]!.tampilkanInfo();
+    } else {
+      print("Tidak ada reservasi yang diproses.");
+    }
+  }
+
+  void cariReservasi() {
+    stdout.write("Masukkan nama pemesan: ");
+    String nama = stdin.readLineSync()?.trim() ?? "";
+
+    if (nama.isEmpty) {
+      print("Nama tidak boleh kosong.");
+      return;
+    }
+
+    if (dataReservasi.containsKey(nama)) {
+      print("Reservasi atas nama $nama:");
+      dataReservasi[nama]!.tampilkanInfo();
+    } else {
+      print("Reservasi atas nama $nama tidak ditemukan.");
+    }
+  }
+
+  void batalkanReservasi() {
+    stdout.write("Masukkan nama untuk membatalkan reservasi: ");
+    String nama = stdin.readLineSync()?.trim() ?? "";
+
+    if (nama.isEmpty) {
+      print("Nama tidak boleh kosong.");
+      return;
+    }
+
+    if (dataReservasi.containsKey(nama)) {
+      dataReservasi.remove(nama);
+      print("Reservasi atas nama $nama telah dibatalkan.");
+    } else {
+      print("Reservasi atas nama $nama tidak ditemukan.");
+    }
+  }
+}
+
+void main() {
+  var reservasi = Reservasi();
+  reservasi.tambahKamar(KamarSingle(1));
+  reservasi.tambahKamar(KamarDouble(2));
+
+  while (true) {
+    stdout.write("\n===== Sistem Reservasi Hotel =====\n");
+    print("1. Lihat daftar kamar");
+    print("2. Pesan kamar");
+    print("3. Proses reservasi");
+    print("4. Cari reservasi berdasarkan nama");
+    print("5. Batalkan reservasi");
+    print("6. Keluar");
+    stdout.write("Pilih menu: ");
+
+    String? pilihan = stdin.readLineSync();
+    switch (pilihan) {
+      case "1":
+        reservasi.tampilkanKamar();
+        break;
+      case "2":
+        reservasi.pesanKamar();
+        break;
+      case "3":
+        reservasi.prosesReservasi();
+        break;
+      case "4":
+        reservasi.cariReservasi();
+        break;
+      case "5":
+        reservasi.batalkanReservasi();
+        break;
+      case "6":
+        print("Terima kasih telah menggunakan sistem reservasi hotel.");
+        return;
+      default:
+        print("Pilihan tidak valid. Silakan coba lagi.");
+    }
+  }
+}
